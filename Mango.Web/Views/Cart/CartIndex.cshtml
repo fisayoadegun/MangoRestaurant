@@ -52,7 +52,23 @@
                                 <span style="font-size:17px;">@string.Format("{0:c}",cartObj.Product.Price) </span>
                             </div>
                             <div class="col-3 col-md-2 pt-md-4" style="font-size:11px;">
-                                <span style="font-size:17px;"> @cartObj.Count</span>
+                                @*<span style="font-size:17px;"> @cartObj.Count</span>*@
+                                <form method="post">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <button type="submit" name="increment" value="true" asp-action="UpdateCart">+</button>
+                                        </div>
+                                        <input type="number" name="count" value="@cartObj.Count" />
+                                        <div class="input-group-append">
+                                            <button type="submit" name="decrement" value="true" @{
+                                                if (cartObj.Count == 1)
+                                                {
+                                                    <text>disabled</text>
+                                                }
+                                            } asp-action="UpdateCart">-</button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                             <div class="col-2 col-lg-1 p-0 pt-lg-4 text-center">
                                 <a asp-action="Remove" asp-route-cartDetailsId="@cartObj.CartDetailsId" class="btn btn-outline-danger">
