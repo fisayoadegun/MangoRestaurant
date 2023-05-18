@@ -52,7 +52,12 @@ namespace Mango.Web.Controllers
             return View();
         }
 
-        private async Task<CartDto> LoadCartDtoBasedOnLoggedInUser()
+		[HttpGet]
+		public async Task<IActionResult> Checkout()
+		{
+			return View(await LoadCartDtoBasedOnLoggedInUser());
+		}
+		private async Task<CartDto> LoadCartDtoBasedOnLoggedInUser()
 		{
 			var userId = User.Claims.Where(u => u.Type == "sub")?.FirstOrDefault()?.Value;
 			var accessToken = await HttpContext.GetTokenAsync("access_token");
@@ -69,11 +74,17 @@ namespace Mango.Web.Controllers
 				if (!string.IsNullOrEmpty(cartDto.CartHeader.CouponCode))
 				{
 					var coupon = await _couponService.GetCoupon<ResponseDto>(cartDto.CartHeader.CouponCode, accessToken);
+					if (coupon != null && coupon.IsSuccess)
+					{
+						var couponObj = JsonConvert.DeserializeObject<CouponDto>(Convert.ToString(coupon.Result));
+						cartDto.CartHeader.DiscountTotal = couponObj.DiscountAmount;
+					}
 				}
 				foreach (var detail in cartDto.CartDetails)
 				{
 					cartDto.CartHeader.OrderTotal += (detail.Product.Price * detail.Count);
 				}
+				cartDto.CartHeader.OrderTotal -= cartDto.CartHeader.DiscountTotal;
 			}
 			return cartDto;
 
@@ -85,11 +96,13 @@ namespace Mango.Web.Controllers
         {           
 			var accessToken = await HttpContext.GetTokenAsync("access_token");
 
-            //CartDetailsDto cartDetails = new CartDetailsDto()
-            //{
-            //    Count = c,
-
-            //};
+			var cartHeader = await _cartService.GetCartByUserIdAsync<ResponseDto>(cartDto.CartHeader.UserId, accessToken); 
+			var cartHeaderObj = JsonConvert.DeserializeObject<CartDto>(Convert.ToString(cartHeader.Result));
+			if (cartHeader != null) 
+			{
+				cartDto.CartDetails = cartHeaderObj.CartDetails;
+			}
+            
 			var response = await _cartService.UpdateCartAsync<ResponseDto>(cartDto, accessToken);
             if (response != null && response.IsSuccess)
             {
@@ -128,5 +141,33 @@ namespace Mango.Web.Controllers
 			}
 			return View();
 		}
-	}
+
+        [HttpPost]
+        [ActionName("Checkout")]
+        public async Task<IActionResult> Checkout(CartDto cartDto)
+        {                        
+			try
+			{
+                var accessToken = await HttpContext.GetTokenAsync("access_token");
+				var response = await _cartService.Checkout<ResponseDto>(cartDto.CartHeader, accessToken);
+				if (!response.IsSuccess)
+				{
+					TempData["Error"] = response.DisplayMessage;
+					return RedirectToAction(nameof(Checkout));
+				}
+				return RedirectToAction(nameof(Confirmation));
+            }
+			catch (Exception e)
+			{
+
+				return View(cartDto);
+			}
+        }
+
+		[HttpGet]
+		public async Task<IActionResult> Confirmation()
+		{
+			return View();
+		}
+    }
 }

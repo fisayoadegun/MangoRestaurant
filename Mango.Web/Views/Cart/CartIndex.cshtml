@@ -56,16 +56,11 @@
                                 <form method="post">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <button type="submit" name="increment" value="true" asp-action="UpdateCart">+</button>
+                                            <button type="submit" name="increment" value="true" onclick="increment()" asp-action="UpdateCart">+</button>
                                         </div>
-                                        <input type="number" name="count" value="@cartObj.Count" />
+                                        <input id="demoInput" type="number" name="count" value="@cartObj.Count" />
                                         <div class="input-group-append">
-                                            <button type="submit" name="decrement" value="true" @{
-                                                if (cartObj.Count == 1)
-                                                {
-                                                    <text>disabled</text>
-                                                }
-                                            } asp-action="UpdateCart">-</button>
+                                            <button type="submit" name="decrement" onclick="decrement()" value="true" asp-action="UpdateCart">-</button>
                                         </div>
                                     </div>
                                 </form>
@@ -96,11 +91,11 @@
                         </div>
                         <div class="col-6 text-end">
                             <span class="text-danger" style="font-size:21px;">  Order Total : @string.Format("{0:c}", Model.CartHeader.OrderTotal) <br /></span>
-                           @* @if (Model.CartHeader.DiscountTotal > 0)
+                            @if (Model.CartHeader.DiscountTotal > 0)
                             {
                                 <span class="text-success"> Order Discount :  @string.Format("{0:c}", Model.CartHeader.DiscountTotal)</span>
 
-                            }*@
+                            }
                         </div>
                     </div>
                 </div>

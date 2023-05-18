@@ -36,10 +36,21 @@ namespace Mango.Web.Services
 
 		public async Task<T> Checkout<T>(CartHeaderDto cartHeader, string token = null)
 		{
-			throw new NotImplementedException();
-		}
+            return await this.SendAsync<T>(new ApiRequest()
+            {
+                ApiType = SD.ApiType.POST,
+                Data = cartHeader,
+                Url = SD.ShoppingCartAPIBase + "/api/cart/Checkout",
+                AccessToken = token
+            });
+        }
 
-		public async Task<T> ClearCartAsync<T>(string userId, string token = null)
+        public Task<T> Checout<T>(CartHeaderDto cartHeader, string toke = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<T> ClearCartAsync<T>(string userId, string token = null)
 		{
 			return await this.SendAsync<T>(new ApiRequest()
 			{
